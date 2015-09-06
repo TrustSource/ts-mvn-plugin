@@ -5,11 +5,38 @@
 
     <groupId>de.eacg</groupId>
     <artifactId>ecs-mvn-plugin</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <packaging>maven-plugin</packaging>
-    <!--<packaging>pom</packaging>-->
 
     <name>ecs-mvn-plugin</name>
+    <description>EACG Code Scan maven plugin. A maven plugin to transfer dependency information to ECS server.</description>
+    <url>https://github.com/eacg-gmbh/ecs-mvn-plugin</url>
+
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>https://raw.githubusercontent.com/eacg-gmbh/ecs-mvn-plugin/master/LICENSE</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>EACG, Enterprise Architecture Consulting Group GmbH</name>
+        <url>https://www.eacg.de/</url>
+    </organization>
+
+    <scm>
+        <url>https://github.com/eacg-gmbh/ecs-mvn-plugin.git</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Gerhard Dickescheid</name>
+            <id>gdd</id>
+            <organization>EACG, Enterprise Architecture Consulting Group GmbH</organization>
+            <organizationUrl>https://www.eacg.de/</organizationUrl>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,6 +46,50 @@
         <maven.version>3.1.1</maven.version>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>release</id>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.3</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
@@ -119,22 +190,39 @@
                 <artifactId>ecs-mvn-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
-                    <apiKey></apiKey>
-                    <userName></userName>
+                    <apiKey>${ecs.apiKey}</apiKey>
+                    <userName>${ecs.user}</userName>
                     <projectName>CodeScanMvn</projectName>
-                    <baseUrl>http://localhost:3000</baseUrl>
-                    <!--<baseUrl>https://demo-ecs.eacg.de</baseUrl>-->
-                    <basicAuthUser></basicAuthUser>
-                    <basicAuthPasswd></basicAuthPasswd>
+                    <baseUrl>${ecs.baseUrl}</baseUrl>
+                    <basicAuthUser>${ecs.basicAuth.user}</basicAuthUser>
+                    <basicAuthPasswd>${ecs.basicAuth.password}</basicAuthPasswd>
                     <skipTransfer>false</skipTransfer>
                 </configuration>
                 <executions>
                     <execution>
                         <id>dependency-scan</id>
-                        <phase>deploy</phase>
+                        <phase>site-deploy</phase>
                         <goals>
                             <goal>dependency-scan</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${user.home}/.ecsrc.properties</file>
+                            </files>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
