@@ -93,7 +93,7 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
      * <p/>
      * Default: 'http://localhost:3000'
      */
-    @Parameter(property = "licenseScan.baseUrl", defaultValue = "http://localhost:3000")
+    @Parameter(property = "licenseScan.baseUrl", defaultValue = "https://demo-ecs.eacg.de")
     private String baseUrl;
 
     /**
