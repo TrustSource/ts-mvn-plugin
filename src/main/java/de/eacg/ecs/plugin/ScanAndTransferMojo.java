@@ -11,11 +11,13 @@ import de.eacg.ecs.plugin.rest.Dependency;
 import de.eacg.ecs.plugin.rest.RestApi;
 import de.eacg.ecs.plugin.rest.Scan;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.apache.maven.model.License;
-import org.apache.maven.model.Model;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -25,16 +27,16 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.dependency.graph.DependencyGraphBuilder;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
-import org.codehaus.mojo.license.AbstractAddThirdPartyMojo;
-import org.codehaus.mojo.license.api.MavenProjectDependenciesConfigurator;
+import org.codehaus.mojo.license.api.DefaultThirdPartyHelper;
+import org.codehaus.mojo.license.api.DependenciesTool;
+import org.codehaus.mojo.license.api.ThirdPartyHelper;
+import org.codehaus.mojo.license.api.ThirdPartyTool;
 import org.codehaus.mojo.license.model.LicenseMap;
-import org.codehaus.mojo.license.utils.SortedProperties;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,20 +44,26 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-/**
- * Initializes (if not skipped) 'ecs-maven-plugin' with goal
- * 'aggregate-add-third-party'. The file, created by this plugin is then scanned and the results a transferred to server
- */
+
 @Mojo(name = "dependency-scan", defaultPhase = LifecyclePhase.DEPLOY,
         requiresDependencyResolution = ResolutionScope.TEST)
-public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
-        implements MavenProjectDependenciesConfigurator {
+public class ScanAndTransferMojo extends AbstractMojo {
 
-    // ----------------------------------------------------------------------
-    // Mojo Parameters
-    // ----------------------------------------------------------------------
+    /** ----------------------------------------------------------------------
+     * Mojo Parameters
+     *
+     * ----------------------------------------------------------------------*/
+
     /**
-     * The name of the project, configured in central server.
+     * Activate verbose mode. If you use start mvn with -X, verbose is also on
+     * <p/>
+     * Default: 'false'
+     */
+    @Parameter( property = "licenseScan.verbose", defaultValue = "${maven.verbose}" )
+    private boolean verbose;
+
+    /**
+     * The name of the project, configured in central evaluation server.
      */
     @Parameter(property = "licenseScan.projectName", required = true)
     private String projectName;
@@ -71,7 +79,7 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
     /**
      * The id of the module as reported to central evaluation server.<br/>
      * <p/>
-     * Default: '${project.groupId}:${project.artifactId}:${project.version}'
+     * Default: '${project.groupId}:${project.artifactId}'
      */
     @Parameter(property = "licenseScan.moduleId", defaultValue = "${project.groupId}:${project.artifactId}")
     private String moduleId;
@@ -91,7 +99,7 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
     /**
      * The Baseurl to access central evaluation server.<br/>
      * <p/>
-     * Default: 'http://localhost:3000'
+     * Default: 'https://demo-ecs.eacg.de'
      */
     @Parameter(property = "licenseScan.baseUrl", defaultValue = "https://demo-ecs.eacg.de")
     private String baseUrl;
@@ -106,12 +114,16 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
 
     /**
      * To skip execution of this mojo.
+     * <p/>
+     * Default: 'false'
      */
     @Parameter(property = "licenseScan.skip", defaultValue = "false")
     private boolean skip;
 
     /**
      * To skip transfer of the result.
+     * <p/>
+     * Default: 'false'
      */
     @Parameter(property = "licenseScan.skipTransfer", defaultValue = "false")
     private boolean skipTransfer;
@@ -119,9 +131,10 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
     /**
      * The scope to filter by when resolving the dependency tree, or <code>null</code> to include dependencies from
      * all scopes.
-     *
+     * <p/>
+     * Default: 'runtime'
      */
-    @Parameter( property = "scope" )
+    @Parameter( property = "licenseScan.scope", defaultValue = "runtime")
     private String scope;
 
     /**
@@ -140,32 +153,65 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
      * Specify as semicolon separated list, the groupId or groupId:artifactId of components you wish to mark as private.
      * This components are not visible by other parties on the central evaluation server.
      * The following example marks all artifacts with groupId "org.acme" and the artifact "org.foo:foo.bar" as private:
-     * "org.acme;org.foo:foo.bar"
-     *
-     * default: groupId of the current project
+     * "org.acme;org.foo:foo.bar".
+     * <p/>
+     * Default: '${project.groupId}' groupId of the current project
      */
     @Parameter(property = "licenseScan.privateComponents", defaultValue = "${project.groupId}")
     private String privateComponents;
 
-    /**
-     * The dependency graph builder to use.
-     */
+
+    /** ----------------------------------------------------------------------
+     * Mojo injected components
+     *
+     * ----------------------------------------------------------------------*/
+
     @Component( hint = "default" )
     private DependencyGraphBuilder dependencyGraphBuilder;
 
     @Component
     private MavenProject mavenProject;
 
+    @Parameter(defaultValue = "${localRepository}", required = true, readonly = true )
+    private ArtifactRepository localRepository;
+
+    @Parameter(defaultValue = "${project.remoteArtifactRepositories}",required = true, readonly = true )
+    private List<ArtifactRepository> remoteRepositories;
+
+    @Parameter(defaultValue = "${project.build.sourceEncoding}", required = true, readonly = true)
+    private String encoding;
+
+    @Component
+    private DependenciesTool dependenciesTool;
+
+    @Component
+    private ThirdPartyTool thirdPartyTool;
+
+    /** ----------------------------------------------------------------------
+     * Mojo private properties
+     *
+     * ----------------------------------------------------------------------*/
+    private ThirdPartyHelper helper;
+    private String[] privateComponentArr = null;
+
+
+    /** ----------------------------------------------------------------------
+     * Mojo implementation
+     *
+     * ----------------------------------------------------------------------*/
     @Override
-    public boolean isSkip() {
-        return skip;
-    }
+    public final void execute() throws MojoExecutionException, MojoFailureException {
 
-    @Override
-    protected void doAction() throws Exception {
+        if ( this.skip ) {
+            getLog().info( "skip flag is on, will skip goal." );
+            return;
+        }
 
-        LicenseMap licenseMap = getLicenseMap();
+        if ( getLog().isDebugEnabled() ) {
+            this.verbose = true;
+        }
 
+        LicenseMap licenseMap = getHelper().createLicenseMap( loadDependencies() );
 
         Dependency dependency = null;
         try {
@@ -190,100 +236,40 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
                 myOwnMap.put(entry.getKey(), entry.getValue());
             }
 
-
-
             printStats(licenseAndProjectSet, projectsAndLicenseSet);
             dependency = createDependencyTree(rootNode, myOwnMap.entrySet());
         } catch (Exception e) {
             getLog().error("License collection failed", e);
             throw new MojoExecutionException("Exception while parsing license file", e);
         }
-        try {
-            Scan scan = new Scan(projectName, moduleName, moduleId, dependency);
+        if(skipTransfer) {
+            getLog().info("Skipping rest transfer");
+        } else {
+            try {
+                Scan scan = new Scan(projectName, moduleName, moduleId, dependency);
+                RestApi restApi = new RestApi(baseUrl, apiPath, apiKey, userName, basicAuthUser, basicAuthPasswd);
 
-            RestApi restApi = new RestApi(baseUrl, apiPath, apiKey, userName, basicAuthUser, basicAuthPasswd);
-            if(skipTransfer) {
-                getLog().info("Skipping rest transfer");
-            } else {
                 transferScan(restApi, scan);
+            } catch (Exception e) {
+                getLog().error("Calling Rest API failed", e);
+                throw new MojoExecutionException("Exception while calling Rest API", e);
             }
-        } catch (Exception e) {
-            getLog().error("Calling Rest API failed", e);
-            throw new MojoExecutionException("Exception while calling Rest API", e);
         }
     }
 
-    @Override
-    protected SortedProperties createUnsafeMapping() {
-        return new SortedProperties(getEncoding());
+    private ThirdPartyHelper getHelper() {
+        if ( helper == null ) {
+            helper = new DefaultThirdPartyHelper( this.mavenProject, this.encoding, this.verbose,
+                this.dependenciesTool, this.thirdPartyTool, this.localRepository, this.remoteRepositories, getLog() );
+        }
+        return helper;
     }
 
-    @Override
-    protected SortedMap<String, MavenProject> loadDependencies() {
-        return getHelper().loadDependencies(this);
+
+    private SortedMap<String, MavenProject> loadDependencies() {
+        return getHelper().loadDependencies(new MavenProjectDependenciesConfiguratorImpl());
     }
 
-    // ----------------------------------------------------------------------
-    // MavenProjectDependenciesConfigurator Implementaton
-    // ----------------------------------------------------------------------
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getExcludedGroups() {
-        return "";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getIncludedGroups() {
-        return "";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getExcludedScopes() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getIncludedScopes() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getExcludedArtifacts() {
-        return "";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getIncludedArtifacts() {
-        return "";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isIncludeTransitiveDependencies() {
-        return true;
-    }
-
-    private String[] privateComponentArr = null;
     private String[] getPrivateComponents() {
         if(privateComponentArr == null) {
             privateComponentArr = privateComponents.split(";");
@@ -306,14 +292,14 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
         return false;
     }
 
-
-    private Dependency mapDependency(DependencyNode node, Map<String, Map.Entry<MavenProject, String[]>> projectLookup) {
+    private Dependency mapDependency(DependencyNode node, Map<ComponentId, Map.Entry<MavenProject, String[]>> projectLookup) {
         Dependency.Builder builder = new Dependency.Builder();
         Artifact artifact = node.getArtifact();
-        Map.Entry<MavenProject, String[]> projectLicensesPair = projectLookup.get(createId(artifact));
+        ComponentId artifactId = ComponentId.create(artifact);
+        Map.Entry<MavenProject, String[]> projectLicensesPair = projectLookup.get(artifactId);
 
         if(projectLicensesPair == null) {
-            getLog().error("Something weird happend: no Project found for artifact: " + createId(artifact));
+            getLog().error("Something weird happened: no Project found for artifact: " + artifactId);
             return null;
         }
 
@@ -328,7 +314,8 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
         if(isPrivateComponent(project)) {
             builder.setPrivate(true);
         }
-        try{
+
+        try {
             File file = artifact.getFile();
             if(file != null) {
                 builder.setChecksum("sha-1:" + ChecksumCreator.createChecksum(file));
@@ -337,10 +324,10 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
                 if(af != null && af.getFile() != null) {
                     builder.setChecksum("sha-1:" + ChecksumCreator.createChecksum(af.getFile()));
                 } else {
-                    getLog().warn("Could not generate checksum - no file specified: " + createId(artifact));
+                    getLog().warn("Could not generate checksum - no file specified: " + ComponentId.create(artifact));
                 }
             }
-        }catch(NoSuchAlgorithmException | IOException e) {
+        } catch(NoSuchAlgorithmException | IOException e) {
             getLog().warn("Could not generate checksum: " + e.getMessage());
         }
 
@@ -360,7 +347,7 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
         return builder.getDependency();
     }
 
-    Artifact findProjectArtifact(Artifact other) {
+    private Artifact findProjectArtifact(Artifact other) {
         for(Object obj : mavenProject.getArtifacts()) {
             // unfortunately we can't use DefaultArtifact.equals(), because the classifier of both may differ (null vs "") even
             // if the Objects represent the same physical artifact.
@@ -377,9 +364,9 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
                         && self.getType().equals(other.getType())) {
 
                     String myClassifier = self.getClassifier() == null ? "" : self.getClassifier();
-                    String otherClasifier = other.getClassifier() == null ? "" : other.getClassifier();
+                    String otherClassifier = other.getClassifier() == null ? "" : other.getClassifier();
 
-                    if (myClassifier.equals(otherClasifier)) {
+                    if (myClassifier.equals(otherClassifier)) {
                         return self;
                     }
                 }
@@ -390,11 +377,11 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
 
     private Dependency createDependencyTree(
             DependencyNode rootNode,
-            Set<Map.Entry<MavenProject, String[]>> projectsAndLicenseSet) throws IOException {
+            Set<Map.Entry<MavenProject, String[]>> projectsAndLicenseSet) {
 
-        Map<String, Map.Entry<MavenProject, String[]>> projectLookup = new HashMap<>();
+        Map<ComponentId, Map.Entry<MavenProject, String[]>> projectLookup = new HashMap<>();
         for(Map.Entry<MavenProject, String[]> entry : projectsAndLicenseSet) {
-            projectLookup.put(createId(entry.getKey()), entry);
+            projectLookup.put(ComponentId.create(entry.getKey()), entry);
         }
 
         return mapDependency(rootNode, projectLookup);
@@ -435,53 +422,13 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
         }
     }
 
-    /**
-     * Gets the artifact filter to use when resolving the dependency tree.
-     *
-     * @return the artifact filter
-     */
+    // depends on configuration parameter scope
     private ArtifactFilter createResolvingArtifactFilter() {
-        ArtifactFilter filter;
+        if ( scope != null ) {
+            getLog().info(String.format("The selected scope is '%s'", scope));
+            return  new ScopeArtifactFilter( scope );
+        } else
 
-        // filter scope
-        if ( scope != null )
-        {
-            getLog().debug( "+ Resolving dependency tree for scope '" + scope + "'" );
-
-            filter = new ScopeArtifactFilter( scope );
-        }
-        else
-        {
-            filter = null;
-        }
-
-        return filter;
-    }
-
-    private static String createId(Artifact artifact) {
-        StringBuilder id = new StringBuilder( 64 );
-
-        id.append((artifact.getGroupId() == null) ? "[inherited]" : artifact.getGroupId());
-        id.append(":");
-        id.append(artifact.getArtifactId());
-        id.append(":");
-        id.append((artifact.getVersion() == null ) ? "[inherited]" : artifact.getVersion());
-
-        return id.toString();
-    }
-
-    private static String createId(MavenProject project) {
-        StringBuilder id = new StringBuilder( 64 );
-        Model model = project.getModel();
-
-
-
-        id.append((model.getGroupId() == null) ? "[inherited]" : model.getGroupId());
-        id.append(":");
-        id.append(model.getArtifactId());
-        id.append(":");
-        id.append((model.getVersion() == null ) ? "[inherited]" : model.getVersion());
-
-        return id.toString();
+        return null;
     }
 }
