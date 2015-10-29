@@ -43,7 +43,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 
 /**
- * Initializes (if not skipped) 'license-maven-plugin' with goal
+ * Initializes (if not skipped) 'ecs-maven-plugin' with goal
  * 'aggregate-add-third-party'. The file, created by this plugin is then scanned and the results a transferred to server
  */
 @Mojo(name = "dependency-scan", defaultPhase = LifecyclePhase.DEPLOY,
@@ -73,7 +73,7 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
      * <p/>
      * Default: '${project.groupId}:${project.artifactId}:${project.version}'
      */
-    @Parameter(property = "licenseScan.moduleId", defaultValue = "${project.groupId}:${project.artifactId}:${project.version}")
+    @Parameter(property = "licenseScan.moduleId", defaultValue = "${project.groupId}:${project.artifactId}")
     private String moduleId;
 
     /**
@@ -136,6 +136,16 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
     @Parameter(property = "licenseScan.basicAuthPasswd")
     private String basicAuthPasswd;
 
+    /**
+     * Specify as semicolon separated list, the groupId or groupId:artifactId of components you wish to mark as private.
+     * This components are not visible by other parties on the central evaluation server.
+     * The following example marks all artifacts with groupId "org.acme" and the artifact "org.foo:foo.bar" as private:
+     * "org.acme;org.foo:foo.bar"
+     *
+     * default: groupId of the current project
+     */
+    @Parameter(property = "licenseScan.privateComponents", defaultValue = "${project.groupId}")
+    private String privateComponents;
 
     /**
      * The dependency graph builder to use.
@@ -189,9 +199,9 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
             throw new MojoExecutionException("Exception while parsing license file", e);
         }
         try {
-            Scan scan = new Scan(apiKey, userName, projectName, moduleName, moduleId, dependency);
+            Scan scan = new Scan(projectName, moduleName, moduleId, dependency);
 
-            RestApi restApi = new RestApi(baseUrl, apiPath, basicAuthUser, basicAuthPasswd);
+            RestApi restApi = new RestApi(baseUrl, apiPath, apiKey, userName, basicAuthUser, basicAuthPasswd);
             if(skipTransfer) {
                 getLog().info("Skipping rest transfer");
             } else {
@@ -273,6 +283,29 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
         return true;
     }
 
+    private String[] privateComponentArr = null;
+    private String[] getPrivateComponents() {
+        if(privateComponentArr == null) {
+            privateComponentArr = privateComponents.split(";");
+        }
+        return privateComponentArr;
+    }
+
+    private boolean isPrivateComponent(MavenProject project) {
+        for (String pc : getPrivateComponents()) {
+            String compareString = project.getGroupId();
+            if(pc.contains(":")) {
+                compareString += ':' + project.getArtifactId();
+            }
+            boolean result = pc.equals(compareString);
+            if(result) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
 
     private Dependency mapDependency(DependencyNode node, Map<String, Map.Entry<MavenProject, String[]>> projectLookup) {
         Dependency.Builder builder = new Dependency.Builder();
@@ -292,6 +325,9 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
                 .setKey("mvn:" + project.getGroupId() + ':' + project.getArtifactId())
                 .addVersion(project.getVersion())
                 .setHomepageUrl(project.getUrl());
+        if(isPrivateComponent(project)) {
+            builder.setPrivate(true);
+        }
         try{
             File file = artifact.getFile();
             if(file != null) {
@@ -320,6 +356,7 @@ public class ScanAndTransferMojo extends AbstractAddThirdPartyMojo
                 builder.addDependency(dep);
             }
         }
+
         return builder.getDependency();
     }
 
