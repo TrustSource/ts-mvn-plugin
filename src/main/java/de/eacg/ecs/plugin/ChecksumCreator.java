@@ -40,8 +40,8 @@ public class ChecksumCreator {
         byte[] hash = sha1.digest();
 
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < hash.length; i++) {
-            sb.append(Integer.toString((hash[i] & 0x00ff) + 0x100, 16).substring(1));
+        for (byte b : hash) {
+            sb.append(Integer.toString((b & 0x00ff) + 0x100, 16).substring(1));
         }
 
         return sb.toString();

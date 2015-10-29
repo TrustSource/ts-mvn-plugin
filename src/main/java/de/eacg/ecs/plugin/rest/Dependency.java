@@ -150,7 +150,7 @@ public class Dependency {
         }
 
         public Builder addLicense(String name, String url) {
-            getLicenses().add(new License(name));
+            getLicenses().add(new License(name, url));
             return this;
         }
 

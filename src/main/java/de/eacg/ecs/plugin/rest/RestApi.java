@@ -23,7 +23,7 @@ public class RestApi {
     private final String apiKey;
     private final String user;
 
-    private Client client;
+    private final Client client;
 
     private int responseStatus = -1;
 
