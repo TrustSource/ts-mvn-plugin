@@ -65,7 +65,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
     /**
      * The name of the project, configured in central evaluation server.
      */
-    @Parameter(property = "licenseScan.projectName", required = true)
+    @Parameter(property = "licenseScan.projectName")
     private String projectName;
 
     /**
@@ -83,18 +83,6 @@ public class ScanAndTransferMojo extends AbstractMojo {
      */
     @Parameter(property = "licenseScan.moduleId", defaultValue = "${project.groupId}:${project.artifactId}")
     private String moduleId;
-
-    /**
-     * The username used to authorize the transfer of dependency information to central server.
-     */
-    @Parameter(property = "licenseScan.userName", required = true)
-    private String userName;
-
-    /**
-     * The API key to used to authorize the transfer of dependency information to central server.
-     */
-    @Parameter(property = "licenseScan.apiKey", required = true)
-    private String apiKey;
 
     /**
      * The Baseurl to access central evaluation server.<br/>
@@ -136,6 +124,40 @@ public class ScanAndTransferMojo extends AbstractMojo {
      */
     @Parameter( property = "licenseScan.scope", defaultValue = "runtime")
     private String scope;
+
+    /**
+     * File in json format which may contain the security credentials
+     * <p/>
+     * Example:<br/>
+     * {<code>
+     *     "user": "willy",<br/>
+     *     "apiKey": "12345678-12345678",<br/>
+     *     "basicAuth": {<br/>
+     *         "user": "optional",<br/>
+     *         "password": "optional"<br/>
+     *
+     *     }
+     * }</code>
+     * <p/>
+     * Required, if username or apiKey are not provided by plugin configuration
+     */
+    @Parameter( property = "licenseScan.credentials")
+    private String credentials;
+    /**
+     * The username used to authorize the transfer of dependency information to central server.
+     * <p/>
+     * Required, if not specified in credentials file
+     */
+    @Parameter(property = "licenseScan.userName")
+    private String userName;
+
+    /**
+     * The API key to used to authorize the transfer of dependency information to central server.
+     * <p/>
+     * Required, if not specified in credentials file
+     */
+    @Parameter(property = "licenseScan.apiKey")
+    private String apiKey;
 
     /**
      * Username if server requires basic auth
@@ -211,6 +233,8 @@ public class ScanAndTransferMojo extends AbstractMojo {
             this.verbose = true;
         }
 
+        JsonCredentials credentials = checkCredentials();
+
         LicenseMap licenseMap = getHelper().createLicenseMap( loadDependencies() );
 
         Dependency dependency = null;
@@ -247,7 +271,11 @@ public class ScanAndTransferMojo extends AbstractMojo {
         } else {
             try {
                 Scan scan = new Scan(projectName, moduleName, moduleId, dependency);
-                RestApi restApi = new RestApi(baseUrl, apiPath, apiKey, userName, basicAuthUser, basicAuthPasswd);
+                RestApi restApi = new RestApi(baseUrl, apiPath,
+                        credentials.getApiKey(this.apiKey),
+                        credentials.getUser(this.userName),
+                        credentials.getBasicAuthUser(basicAuthUser),
+                        credentials.getBasicAuthPasswd(basicAuthPasswd));
 
                 transferScan(restApi, scan);
             } catch (Exception e) {
@@ -256,6 +284,28 @@ public class ScanAndTransferMojo extends AbstractMojo {
             }
         }
     }
+
+    private JsonCredentials checkCredentials() throws MojoExecutionException {
+        try {
+            JsonCredentials credentials = new JsonCredentials(this.credentials);
+            checkMandatoryParameter("userName", credentials.getUser(this.userName));
+            checkMandatoryParameter("apiKey", credentials.getApiKey(this.apiKey));
+            return credentials;
+        } catch (Exception e) {
+            getLog().error("Evaluation of user credentials failed", e);
+            throw new MojoExecutionException("Exception while evaluating user credentials", e);
+        }
+    }
+
+    private void checkMandatoryParameter(String name, String p) throws MojoExecutionException {
+        if (p == null || p.isEmpty()) {
+            String err = String.format("The mandatory parameter '%s' for plugin %s is missing or invalid",
+                    name, ComponentId.create(mavenProject));
+            getLog().error(err);
+            throw new MojoExecutionException("Exception: " + err);
+        }
+    }
+
 
     private ThirdPartyHelper getHelper() {
         if ( helper == null ) {

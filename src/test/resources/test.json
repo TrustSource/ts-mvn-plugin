@@ -1,0 +1,8 @@
+{
+  "userName": "willy",
+  "apiKey": "12345678-12345678",
+  "basicAuth": {
+    "user": "user",
+    "passwd": "passwd"
+  }
+}
