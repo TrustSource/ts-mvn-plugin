@@ -1,6 +1,8 @@
 # ecs-mvn-plugin
 EACG Code Scan maven plugin. A maven plugin to transfer dependency information to ECS server.
 
+[![Build Status](https://travis-ci.org/eacg-gmbh/ecs-mvn-plugin.svg?branch=master)](https://travis-ci.org/eacg-gmbh/ecs-mvn-plugin)
+
 ## Installation
 The installation instructions will be provided as part of the ECS web-application.
 As long as this web-application isn't publicly accessable, a few screenshots with detailed instructions may be found here.
