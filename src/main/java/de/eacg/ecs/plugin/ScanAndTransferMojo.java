@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.SortedSet;
 
 
@@ -200,7 +199,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.remoteArtifactRepositories}",required = true, readonly = true )
     private List<ArtifactRepository> remoteRepositories;
 
-    @Parameter(defaultValue = "${project.build.sourceEncoding}", required = true, readonly = true)
+    @Parameter(defaultValue = "${project.build.sourceEncoding}", readonly = true)
     private String encoding;
 
     @Component
@@ -213,7 +212,6 @@ public class ScanAndTransferMojo extends AbstractMojo {
      * Mojo private properties
      *
      * ----------------------------------------------------------------------*/
-    private ThirdPartyHelper helper;
     private String[] privateComponentArr = null;
 
 
@@ -223,6 +221,9 @@ public class ScanAndTransferMojo extends AbstractMojo {
      * ----------------------------------------------------------------------*/
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
+        if(this.encoding == null) {
+            this.encoding = "UTF-8"; // encoding is required by ThirdPartyHelper Todo: get rid of it
+        }
 
         if ( this.skip ) {
             getLog().info( "skip flag is on, will skip goal." );
@@ -233,39 +234,10 @@ public class ScanAndTransferMojo extends AbstractMojo {
             this.verbose = true;
         }
 
-        JsonCredentials credentials = checkCredentials();
+        JsonCredentials credentials = readAndCheckCredentials();
 
-        LicenseMap licenseMap = getHelper().createLicenseMap( loadDependencies() );
+        Dependency dependency = createDependency();
 
-        Dependency dependency = null;
-        try {
-            ArtifactFilter artifactFilter = createResolvingArtifactFilter();
-
-            DependencyNode rootNode = dependencyGraphBuilder.buildDependencyGraph( mavenProject, artifactFilter );
-
-            Set<Map.Entry<String, SortedSet<MavenProject>>> licenseAndProjectSet = licenseMap.entrySet();
-            Set<Map.Entry<MavenProject, String[]>> projectsAndLicenseSet = licenseMap.toDependencyMap().entrySet();
-
-
-            // add this project to list
-            List<String> ownLicenses = new ArrayList<>();
-            for(License lic : mavenProject.getModel().getLicenses()) {
-                ownLicenses.add(lic.getName());
-            }
-            String[] ownLicensesArr = ownLicenses.toArray(new String[ownLicenses.size()]);
-
-            Map<MavenProject, String[]> myOwnMap = new HashMap<>();
-            myOwnMap.put(mavenProject, ownLicensesArr);
-            for(Map.Entry<MavenProject, String[]>entry : projectsAndLicenseSet) {
-                myOwnMap.put(entry.getKey(), entry.getValue());
-            }
-
-            printStats(licenseAndProjectSet, projectsAndLicenseSet);
-            dependency = createDependencyTree(rootNode, myOwnMap.entrySet());
-        } catch (Exception e) {
-            getLog().error("License collection failed", e);
-            throw new MojoExecutionException("Exception while parsing license file", e);
-        }
         if(skipTransfer) {
             getLog().info("Skipping rest transfer");
         } else {
@@ -285,7 +257,39 @@ public class ScanAndTransferMojo extends AbstractMojo {
         }
     }
 
-    private JsonCredentials checkCredentials() throws MojoExecutionException {
+    private Dependency createDependency() throws MojoExecutionException {
+
+        try {
+            LicenseMap licenseMap = createLicenseMap();
+            ArtifactFilter artifactFilter = createResolvingArtifactFilter();
+
+            DependencyNode rootNode = dependencyGraphBuilder.buildDependencyGraph( mavenProject, artifactFilter );
+
+            Set<Map.Entry<String, SortedSet<MavenProject>>> licenseAndProjectSet = licenseMap.entrySet();
+            Set<Map.Entry<MavenProject, String[]>> projectsAndLicenseSet = licenseMap.toDependencyMap().entrySet();
+
+            // add this project to list
+            List<String> ownLicenses = new ArrayList<>();
+            for(License lic : mavenProject.getModel().getLicenses()) {
+                ownLicenses.add(lic.getName());
+            }
+            String[] ownLicensesArr = ownLicenses.toArray(new String[ownLicenses.size()]);
+
+            Map<MavenProject, String[]> myOwnMap = new HashMap<>();
+            myOwnMap.put(mavenProject, ownLicensesArr);
+            for(Map.Entry<MavenProject, String[]>entry : projectsAndLicenseSet) {
+                myOwnMap.put(entry.getKey(), entry.getValue());
+            }
+
+            printStats(licenseAndProjectSet, projectsAndLicenseSet);
+            return  createDependencyTree(rootNode, myOwnMap.entrySet());
+        } catch (Exception e) {
+            getLog().error("License collection failed", e);
+            throw new MojoExecutionException("Exception while collecting license information", e);
+        }
+    }
+
+    private JsonCredentials readAndCheckCredentials() throws MojoExecutionException {
         try {
             JsonCredentials credentials = new JsonCredentials(this.credentials);
             checkMandatoryParameter("userName", credentials.getUser(this.userName));
@@ -307,17 +311,11 @@ public class ScanAndTransferMojo extends AbstractMojo {
     }
 
 
-    private ThirdPartyHelper getHelper() {
-        if ( helper == null ) {
-            helper = new DefaultThirdPartyHelper( this.mavenProject, this.encoding, this.verbose,
+    private LicenseMap createLicenseMap() {
+        ThirdPartyHelper tpHelper = new DefaultThirdPartyHelper( this.mavenProject, this.encoding, this.verbose,
                 this.dependenciesTool, this.thirdPartyTool, this.localRepository, this.remoteRepositories, getLog() );
-        }
-        return helper;
-    }
 
-
-    private SortedMap<String, MavenProject> loadDependencies() {
-        return getHelper().loadDependencies(new MavenProjectDependenciesConfiguratorImpl());
+        return tpHelper.createLicenseMap(tpHelper.loadDependencies(new MavenProjectDependenciesConfiguratorImpl()));
     }
 
     private String[] getPrivateComponents() {
@@ -456,7 +454,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
             Set<Map.Entry<MavenProject, String[]>> projectsAndLicenseSet) {
 
         Log log = getLog();
-        if (log.isInfoEnabled()) {
+        if (log.isInfoEnabled() && this.verbose) {
             log.info("Dependencies found:");
             for (Map.Entry<MavenProject, String[]> entry : projectsAndLicenseSet) {
                 MavenProject project = entry.getKey();
