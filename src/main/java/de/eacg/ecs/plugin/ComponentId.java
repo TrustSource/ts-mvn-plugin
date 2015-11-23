@@ -96,4 +96,24 @@ public abstract class ComponentId {
             }
         };
     }
+
+
+    public static ComponentId createFallback(final Artifact artifact) {
+        return new ComponentId() {
+            @Override
+            public String getGroupId() {
+                return artifact.getGroupId();
+            }
+
+            @Override
+            public String getArtifactId() {
+                return artifact.getArtifactId();
+            }
+
+            @Override
+            public String getVersion() {
+                return artifact.getBaseVersion();
+            }
+        };
+    }
 }

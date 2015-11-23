@@ -346,6 +346,11 @@ public class ScanAndTransferMojo extends AbstractMojo {
         ComponentId artifactId = ComponentId.create(artifact);
         Map.Entry<MavenProject, String[]> projectLicensesPair = projectLookup.get(artifactId);
 
+        // try fallback to artifact baseVersion, (for example because a snapshot is locked )
+        if(projectLicensesPair == null) {
+            projectLicensesPair =  projectLookup.get(ComponentId.createFallback(artifact));
+        }
+
         if(projectLicensesPair == null) {
             getLog().error("Something weird happened: no Project found for artifact: " + artifactId);
             return null;
