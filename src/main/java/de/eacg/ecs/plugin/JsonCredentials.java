@@ -46,18 +46,6 @@ public class JsonCredentials {
         return v == null ? deflt : v;
     }
 
-    public String getBasicAuthUser(String deflt) {
-        Map sub = getType("basicAuth", Map.class);
-        String v = getString(sub, "user");
-        return v == null ? deflt : v;
-    }
-
-    public String getBasicAuthPasswd(String deflt) {
-        Map sub = getType("basicAuth", Map.class);
-        String v = getString(sub, "passwd");
-        return v == null ? deflt : v;
-    }
-
     private String getString(String key){
         return getType(this.properties, key, String.class);
     }

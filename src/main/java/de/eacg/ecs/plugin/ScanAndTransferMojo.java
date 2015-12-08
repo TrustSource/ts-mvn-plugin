@@ -129,13 +129,8 @@ public class ScanAndTransferMojo extends AbstractMojo {
      * <p/>
      * Example:<br/>
      * {<code>
-     *     "user": "willy",<br/>
+     *     "user": "willy@company.com",<br/>
      *     "apiKey": "12345678-12345678",<br/>
-     *     "basicAuth": {<br/>
-     *         "user": "optional",<br/>
-     *         "password": "optional"<br/>
-     *
-     *     }
      * }</code>
      * <p/>
      * Required, if username or apiKey are not provided by plugin configuration
@@ -157,18 +152,6 @@ public class ScanAndTransferMojo extends AbstractMojo {
      */
     @Parameter(property = "licenseScan.apiKey")
     private String apiKey;
-
-    /**
-     * Username if server requires basic auth
-     */
-    @Parameter(property = "licenseScan.basicAuthUser")
-    private String basicAuthUser;
-
-    /**
-     * Password if server requires basic auth
-     */
-    @Parameter(property = "licenseScan.basicAuthPasswd")
-    private String basicAuthPasswd;
 
     /**
      * Specify as semicolon separated list, the groupId or groupId:artifactId of components you wish to mark as private.
@@ -245,9 +228,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
                 Scan scan = new Scan(projectName, moduleName, moduleId, dependency);
                 RestApi restApi = new RestApi(baseUrl, apiPath,
                         credentials.getApiKey(this.apiKey),
-                        credentials.getUser(this.userName),
-                        credentials.getBasicAuthUser(basicAuthUser),
-                        credentials.getBasicAuthPasswd(basicAuthPasswd));
+                        credentials.getUser(this.userName));
 
                 transferScan(restApi, scan);
             } catch (Exception e) {

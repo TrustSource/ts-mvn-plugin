@@ -35,15 +35,6 @@ public class JsonCredentialsTest {
     }
 
     @Test
-    public void testGetBasicAuthUser() throws Exception {
-        assertEquals("user", creds.getBasicAuthUser(""));
-    }
-    @Test
-    public void testGetBasicAuthPasswd() throws Exception {
-        assertEquals("passwd", creds.getBasicAuthPasswd(""));
-    }
-
-    @Test
     public void testGetWithDefault() throws Exception {
         String json = "{\"userName\": \"karl\"}";
         JsonCredentials newCreds = new JsonCredentials(

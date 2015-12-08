@@ -9,12 +9,17 @@ package de.eacg.ecs.plugin.rest;
 
 
 import de.eacg.ecs.plugin.ProjectProperties;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.ProxySelector;
 
 public class RestApi {
 
@@ -28,19 +33,13 @@ public class RestApi {
     private int responseStatus = -1;
 
 
-    public RestApi(String baseUrl, String apiPath, String apiKey, String user) {
-        this(baseUrl, apiPath, apiKey, user, null, null);
-    }
 
-    public RestApi(String baseUrl, String apiPath, String apiKey, String user, String basicAuthUser, String basicAuthPwd) {
+    public RestApi(String baseUrl, String apiPath, String apiKey, String user) {
         this.baseUrl = baseUrl;
         this.apiPath = apiPath;
         this.apiKey = apiKey;
         this.user = user;
-        this.client = ClientBuilder.newClient();
-        if(basicAuthUser != null && basicAuthPwd != null) {
-            this.client.register(new Authenticator(basicAuthUser, basicAuthPwd));
-        }
+        this.client = createClient();
     }
 
     public String transferScan(Scan scan) throws Exception {
@@ -60,5 +59,17 @@ public class RestApi {
 
     public int getResponseStatus() {
         return responseStatus;
+    }
+
+    private static Client createClient() {
+        SystemDefaultRoutePlanner routePlanner = new SystemDefaultRoutePlanner(
+                ProxySelector.getDefault());
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setRoutePlanner(routePlanner)
+                .build();
+
+        ApacheHttpClient4Engine engine = new ApacheHttpClient4Engine(httpClient);
+
+        return new ResteasyClientBuilder().httpEngine(engine).build();
     }
 }
