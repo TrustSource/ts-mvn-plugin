@@ -7,9 +7,10 @@
 
 package de.eacg.ecs.plugin;
 
-import de.eacg.ecs.plugin.rest.Dependency;
-import de.eacg.ecs.plugin.rest.RestApi;
-import de.eacg.ecs.plugin.rest.Scan;
+import de.eacg.ecs.client.Dependency;
+import de.eacg.ecs.client.JsonProperties;
+import de.eacg.ecs.client.RestClient;
+import de.eacg.ecs.client.Scan;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -217,8 +219,6 @@ public class ScanAndTransferMojo extends AbstractMojo {
             this.verbose = true;
         }
 
-        JsonCredentials credentials = readAndCheckCredentials();
-
         Dependency dependency = createDependency();
 
         if(skipTransfer) {
@@ -226,11 +226,8 @@ public class ScanAndTransferMojo extends AbstractMojo {
         } else {
             try {
                 Scan scan = new Scan(projectName, moduleName, moduleId, dependency);
-                RestApi restApi = new RestApi(baseUrl, apiPath,
-                        credentials.getApiKey(this.apiKey),
-                        credentials.getUser(this.userName));
-
-                transferScan(restApi, scan);
+                RestClient restClient = new RestClient(readAndCheckCredentials(), getUserAgent());
+                transferScan(restClient, scan);
             } catch (Exception e) {
                 getLog().error("Calling Rest API failed", e);
                 throw new MojoExecutionException("Exception while calling Rest API", e);
@@ -270,27 +267,29 @@ public class ScanAndTransferMojo extends AbstractMojo {
         }
     }
 
-    private JsonCredentials readAndCheckCredentials() throws MojoExecutionException {
+    private JsonProperties readAndCheckCredentials() throws MojoExecutionException {
+        JsonProperties credentials;
         try {
-            JsonCredentials credentials = new JsonCredentials(this.credentials);
-            checkMandatoryParameter("userName", credentials.getUser(this.userName));
-            checkMandatoryParameter("apiKey", credentials.getApiKey(this.apiKey));
-            return credentials;
+            credentials = new JsonProperties(this.credentials);
         } catch (Exception e) {
             getLog().error("Evaluation of user credentials failed", e);
             throw new MojoExecutionException("Exception while evaluating user credentials", e);
         }
-    }
+        credentials.setUserName(this.userName);
+        credentials.setApiKey(this.apiKey);
+        credentials.setBaseUrl(this.baseUrl);
+        credentials.setApiPath(this.apiPath);
 
-    private void checkMandatoryParameter(String name, String p) throws MojoExecutionException {
-        if (p == null || p.isEmpty()) {
-            String err = String.format("The mandatory parameter '%s' for plugin %s is missing or invalid",
-                    name, ComponentId.create(mavenProject));
+        List<String> misssingKeys = credentials.validate();
+        if(misssingKeys.isEmpty() == false) {
+            String err = String.format("The mandatory parameter(s) '%s' for plugin %s is missing or invalid",
+                    misssingKeys.toString(), ComponentId.create(mavenProject));
             getLog().error(err);
             throw new MojoExecutionException("Exception: " + err);
         }
-    }
 
+        return credentials;
+    }
 
     private LicenseMap createLicenseMap() {
         ThirdPartyHelper tpHelper = new DefaultThirdPartyHelper( this.mavenProject, this.encoding, this.verbose,
@@ -378,7 +377,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
             }
         }
 
-        return builder.getDependency();
+        return builder.buildDependency();
     }
 
     private Artifact findProjectArtifact(Artifact other) {
@@ -421,7 +420,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
         return mapDependency(rootNode, projectLookup);
     }
 
-    private void transferScan(RestApi api, Scan scan) throws MojoExecutionException {
+    private void transferScan(RestClient api, Scan scan) throws MojoExecutionException {
         try {
             String body = api.transferScan(scan);
             getLog().info(String.format("API Response: code: %d, body: %n%s%n",
@@ -464,5 +463,15 @@ public class ScanAndTransferMojo extends AbstractMojo {
         } else
 
         return null;
+    }
+
+    private String getUserAgent() {
+        String userAgent = "ecs-mvn-plugin/0.0";
+        try {
+            ProjectProperties properties = new ProjectProperties();
+            userAgent = properties.getProperty("artifactId") + "/" + properties.getProperty("version");
+        }catch(IOException e) {
+        }
+        return userAgent;
     }
 }
