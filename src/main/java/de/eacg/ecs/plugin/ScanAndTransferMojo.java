@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015. Enterprise Architecture Group, EACG
+ * Copyright (c) 2016. Enterprise Architecture Group, EACG
  *
  * SPDX-License-Identifier:	MIT
  *
@@ -38,10 +38,10 @@ import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -211,7 +211,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
         }
 
         if ( this.skip ) {
-            getLog().info( "skip flag is on, will skip goal." );
+            getLog().info( "skip flag is set, will skip goal." );
             return;
         }
 
@@ -414,7 +414,9 @@ public class ScanAndTransferMojo extends AbstractMojo {
 
         Map<ComponentId, Map.Entry<MavenProject, String[]>> projectLookup = new HashMap<>();
         for(Map.Entry<MavenProject, String[]> entry : projectsAndLicenseSet) {
-            projectLookup.put(ComponentId.create(entry.getKey()), entry);
+            MavenProject project = entry.getKey();
+            ProjectFix.fixProject(project);
+            projectLookup.put(ComponentId.create(project), entry);
         }
 
         return mapDependency(rootNode, projectLookup);
@@ -444,7 +446,8 @@ public class ScanAndTransferMojo extends AbstractMojo {
             for (Map.Entry<MavenProject, String[]> entry : projectsAndLicenseSet) {
                 MavenProject project = entry.getKey();
                 String[] licenses = entry.getValue();
-                log.info(String.format("%s %s, %s", project.getName(), project.getVersion(), licenses));
+                log.info(String.format("%s %s, %s", project.getId(), project.getName(),
+                        Arrays.toString(licenses)));
             }
         }
         if (log.isInfoEnabled()) {

@@ -5,7 +5,7 @@
 
     <groupId>de.eacg</groupId>
     <artifactId>ecs-mvn-plugin</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5-snapshot</version>
     <packaging>maven-plugin</packaging>
 
     <name>ecs-mvn-plugin</name>
@@ -189,10 +189,8 @@
                 <version>${project.version}</version>
                 <configuration>
                     <credentials>~/.ecsrc.json</credentials>
-                    <projectName>CodeScanMvn</projectName>
+                    <projectName>ecs-mvn-plugin</projectName>
                     <skipTransfer>false</skipTransfer>
-                    <baseUrl>http://localhost:3000</baseUrl>
-                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
