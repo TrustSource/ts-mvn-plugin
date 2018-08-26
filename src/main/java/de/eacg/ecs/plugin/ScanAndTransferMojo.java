@@ -201,11 +201,45 @@ public class ScanAndTransferMojo extends AbstractMojo {
 
 
     /** ----------------------------------------------------------------------
+     * Mojo properties accessors
+     *
+     * ----------------------------------------------------------------------*/
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public String getModuleName() {
+        return moduleName;
+    }
+
+
+    /** ----------------------------------------------------------------------
      * Mojo implementation
      *
      * ----------------------------------------------------------------------*/
     @Override
-    public final void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        init();
+
+        Dependency dependency = createDependency();
+
+        if(skipTransfer) {
+            getLog().info("Skipping rest transfer");
+        } else {
+            try {
+                Scan scan = createScan(dependency);
+                RestClient restClient = createRestClient();
+
+                transferScan(restClient, scan);
+            } catch (Exception e) {
+                getLog().error("Calling Rest API failed", e);
+                throw new MojoExecutionException("Exception while calling Rest API", e);
+            }
+        }
+    }
+
+    protected void init() {
         if(this.encoding == null) {
             this.encoding = "UTF-8"; // encoding is required by ThirdPartyHelper Todo: get rid of it
         }
@@ -218,24 +252,17 @@ public class ScanAndTransferMojo extends AbstractMojo {
         if ( getLog().isDebugEnabled() ) {
             this.verbose = true;
         }
-
-        Dependency dependency = createDependency();
-
-        if(skipTransfer) {
-            getLog().info("Skipping rest transfer");
-        } else {
-            try {
-                Scan scan = new Scan(projectName, moduleName, moduleId, dependency);
-                RestClient restClient = new RestClient(readAndCheckCredentials(), getUserAgent());
-                transferScan(restClient, scan);
-            } catch (Exception e) {
-                getLog().error("Calling Rest API failed", e);
-                throw new MojoExecutionException("Exception while calling Rest API", e);
-            }
-        }
     }
 
-    private Dependency createDependency() throws MojoExecutionException {
+    protected Scan createScan(Dependency dependency) {
+        return new Scan(projectName, moduleName, moduleId, dependency);
+    }
+
+    protected RestClient createRestClient() throws MojoExecutionException {
+        return new RestClient(readAndCheckCredentials(), getUserAgent());
+    }
+
+    protected Dependency createDependency() throws MojoExecutionException {
 
         try {
             LicenseMap licenseMap = createLicenseMap();
