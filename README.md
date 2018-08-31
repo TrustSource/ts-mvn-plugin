@@ -5,14 +5,14 @@ EACG Code Scan maven plugin. A maven plugin to transfer dependency information t
 [![Maven](https://img.shields.io/maven-central/v/de.eacg/ecs-mvn-plugin.svg)](http://search.maven.org/#search|gav|1|g%3A%22de.eacg%22%20AND%20a%3A%22ecs-mvn-plugin%22)
 [![MIT License](https://img.shields.io/npm/l/check-dependencies.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 
-##System requirements
+## System requirements
 
 - JDK
     - 1.7 or later
 - Maven
     - 3.0 or later
     
-##Quick installation
+## Quick installation
 
 It’s easy to include ECS into your existing Maven projects. Utilize the ecs-mvn-plugin by declaring it in your pom and using the given example as a template.
 Then configure the plugin with your security credentials and bind it for example to the maven install lifecycle.
@@ -58,7 +58,7 @@ Execute on command line:
 ``
 mvn clean install
 ``
-##Advanced Setup
+## Advanced Setup
 Multi module reactor build
 
 If you use a more complex, maven multi module setup, you may define the ecs-mvn-plugin in the `<pluginManagement>` section of your module pom. All your children projects inherit this definition.
@@ -114,14 +114,14 @@ configuration of the ecs-mvn-plugin:
 </plugin>
 ```
 
-##Reference
+## Reference
 ecs-maven-plugin provides two goals that can be executed within different lifecycles  
  - `dependency-scan` - scans dependencies of the projects and uploads them to the server
  - `dependency-check` - checks dependencies of the projects for legal issues and vulnerabilities. This goal also allows to break a build if some issues and vulnerabilities are found during a scan.
  
  *NOTE*: Before executing `dependency-check` goal first time, it is required to execute `dependency-scan` before in order to transfer the information about the project and its modules and configure the legal settings of every module in the [TrustSource web application](https://app.trustsource.io). 
  
-###Additional settings
+### Additional settings
 
 If you do not want to transfer the detected dependency information for every maven install call, bind the ecs-mvn-plugin for example to the deploy lifecycle. If you haven’t configured the `<distributionManagement>` element in your poms, because you prefer your own style distribution, then you have to disable the maven distribution plugin to prevent error messages while invoking the deploy lifecycle phase (mvn deploy).
 
@@ -137,7 +137,7 @@ Disable the maven deployment plugin:
 </plugin>                
 ```
 
-####Configuration parameters
+#### Configuration parameters
 
 - *credentials* (Optional): Path to a json file, which holds ‘userName’ and ‘apiKey’ credentials. Use ‘~’ as shortcut to your home directory, and ‘.’ for the current working directory. A forward slash ‘/’ separates directories. *Default*: apiKey and userName are expected to be set in the plugin configuration
 
