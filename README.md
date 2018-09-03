@@ -1,5 +1,5 @@
 # ecs-mvn-plugin
-EACG Code Scan maven plugin. A maven plugin to transfer dependency information to ECS server and checking the dependency for legal issues and vulnerabilities. 
+TrustSource Code Scan maven plugin. A plugin for maven to transfer dependency information to <a href="https://www.trustsource.io" target="_new">TrustSource</a> service to allow dependency checking, vulnerability and license analysis. 
 
 [![Build Status](https://travis-ci.org/eacg-gmbh/ecs-mvn-plugin.svg?branch=master)](https://travis-ci.org/eacg-gmbh/ecs-mvn-plugin)
 [![Maven](https://img.shields.io/maven-central/v/de.eacg/ecs-mvn-plugin.svg)](http://search.maven.org/#search|gav|1|g%3A%22de.eacg%22%20AND%20a%3A%22ecs-mvn-plugin%22)
@@ -14,10 +14,10 @@ EACG Code Scan maven plugin. A maven plugin to transfer dependency information t
     
 ## Quick installation
 
-It’s easy to include ECS into your existing Maven projects. Utilize the ecs-mvn-plugin by declaring it in your pom and using the given example as a template.
-Then configure the plugin with your security credentials and bind it for example to the maven install lifecycle.
+It is pretty simple to include the TrustSource scan into your existing Maven projects. Mayke use of the ecs-mvn-plugin by declaring it in your pom and using the given example as template.
+Then configure the plugin with your security credentials and bind it to the maven install lifecycle.
 
-To retrieve the ECS ApiKey, login to the ECS web application. Go to profile settings by clicking the gear-icon in the navigation bar and copy one of your company’s ApiKeys to your clipboard. Paste this value between the `<apiKey>...</apiKey>` tags of your project’s pom.xml file. Enter your ECS username, probably your e-mail address, between the `<userName>...</userName>` tags and find a reasonable project name to enter it between the `<projectName>...</projectName>` tags.
+To retrieve a TrustSource ApiKey, login to the TrustSource web application at https://app.trustsource.io. Accounts can be obtain upon subscription. A free version is available. After registration go to profile settings by clicking the gear-icon in the navigation bar and copy one of your company’s ApiKeys to your clipboard. Paste this value between the `<apiKey>...</apiKey>` tags of your project’s pom.xml file. Enter your ECS username, probably your e-mail address, between the `<userName>...</userName>` tags and find a reasonable project name to enter it between the `<projectName>...</projectName>` tags.
 
 Simple example pom.xml:
 ```xml
@@ -63,7 +63,7 @@ Multi module reactor build
 
 If you use a more complex, maven multi module setup, you may define the ecs-mvn-plugin in the `<pluginManagement>` section of your module pom. All your children projects inherit this definition.
 
-ECS requires unique project names. Therefore you have to define the project name and moduleId in every child-modules pom within the `<configuration>`-tag.
+TrustSource requires unique project names. Therefore you have to define the project name and moduleId in every child-modules pom within the `<configuration>`-tag.
 Alternatively, split your project name in 2 parts, the first part contains your projects main name and the second part is dynamically resolved for every sub-module you want to scan. Like so:
 
 ```xml
@@ -89,7 +89,7 @@ pom.xml for child modules
 ```
 Export your credentials to a property file
 
-If you do not want to include your sensitive credentials in the pom, which may be managed by a version control system, store this information in a separate file. This file may by for example located in your user home directory and should have json data format. If you externalize your security credentials, they are reusable for different projects, even if this projects utilize different build tools.
+If you do not want to include your sensitive credentials in the pom, which may be managed by a version control system, store this information in a separate file. This file may be for example located in your user home directory and should have json data format. If you externalize your security credentials, they are reusable for different projects, even if this projects utilize different build tools.
 
 properties file ‘ecs-settings.json’ in your home directory:
 ```json
@@ -119,7 +119,7 @@ ecs-maven-plugin provides two goals that can be executed within different lifecy
  - `dependency-scan` - scans dependencies of the projects and uploads them to the server
  - `dependency-check` - checks dependencies of the projects for legal issues and vulnerabilities. This goal also allows to break a build if some issues and vulnerabilities are found during a scan.
  
- *NOTE*: Before executing `dependency-check` goal first time, it is required to execute `dependency-scan` before in order to transfer the information about the project and its modules and configure the legal settings of every module in the [TrustSource web application](https://app.trustsource.io). 
+ *NOTE*: Before executing `dependency-check` goal first time, it is required to execute `dependency-scan` in order to transfer the information about the project and its modules and configure the legal settings of every module in the [TrustSource web application](https://app.trustsource.io). 
  
 ### Additional settings
 
