@@ -1,5 +1,5 @@
 # ecs-mvn-plugin
-TrustSource Code Scan maven plugin. A plugin for maven to transfer dependency information to <a href="https://www.trustsource.io" target="_new">TrustSource</a> service to allow dependency checking, vulnerability and license analysis. 
+TrustSource (https://www.trustsource.io) Code Scan maven plugin. A plugin for maven to transfer dependency information to TrustSource service to allow dependency checking, vulnerability and license analysis. 
 
 [![Build Status](https://travis-ci.org/eacg-gmbh/ecs-mvn-plugin.svg?branch=master)](https://travis-ci.org/eacg-gmbh/ecs-mvn-plugin)
 [![Maven](https://img.shields.io/maven-central/v/de.eacg/ecs-mvn-plugin.svg)](http://search.maven.org/#search|gav|1|g%3A%22de.eacg%22%20AND%20a%3A%22ecs-mvn-plugin%22)
@@ -17,7 +17,7 @@ TrustSource Code Scan maven plugin. A plugin for maven to transfer dependency in
 It is pretty simple to include the TrustSource scan into your existing Maven projects. Mayke use of the ecs-mvn-plugin by declaring it in your pom and using the given example as template.
 Then configure the plugin with your security credentials and bind it to the maven install lifecycle.
 
-To retrieve a TrustSource ApiKey, login to the TrustSource web application at https://app.trustsource.io. Accounts can be obtain upon subscription. A free version is available. After registration go to profile settings by clicking the gear-icon in the navigation bar and copy one of your company’s ApiKeys to your clipboard. Paste this value between the `<apiKey>...</apiKey>` tags of your project’s pom.xml file. Enter your ECS username, probably your e-mail address, between the `<userName>...</userName>` tags and find a reasonable project name to enter it between the `<projectName>...</projectName>` tags.
+To retrieve a TrustSource ApiKey, login to the TrustSource web application at https://app.trustsource.io. Accounts can be obtain upon subscription. A free version is available. After registration go to profile settings by clicking the gear-icon in the navigation bar and copy one of your company’s ApiKeys to your clipboard. Paste this value between the `<apiKey>...</apiKey>` tags of your project’s pom.xml file. Enter your TrustSource username, probably your e-mail address, between the `<userName>...</userName>` tags and find a reasonable project name to enter it between the `<projectName>...</projectName>` tags.
 
 Simple example pom.xml:
 ```xml
