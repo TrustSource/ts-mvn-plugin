@@ -36,6 +36,12 @@
             <organization>EACG, Enterprise Architecture Consulting Group GmbH</organization>
             <organizationUrl>https://www.eacg.de/</organizationUrl>
         </developer>
+        <developer>
+            <name>Grigory Markin</name>
+            <id>gmn</id>
+            <organization>EACG, Enterprise Architecture Consulting Group GmbH</organization>
+            <organizationUrl>https://www.eacg.de/</organizationUrl>
+        </developer>
     </developers>
 
     <properties>
@@ -186,7 +192,7 @@
             <plugin>
                 <groupId>de.eacg</groupId>
                 <artifactId>ecs-mvn-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>0.1.4</version>
                 <configuration>
                     <credentials>~/.ecsrc.json</credentials>
                     <projectName>ecs-mvn-plugin</projectName>
