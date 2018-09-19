@@ -88,9 +88,9 @@ public class ScanAndTransferMojo extends AbstractMojo {
     /**
      * The Baseurl to access central evaluation server.<br/>
      * <p/>
-     * Default: 'https://ecs-app.eacg.de'
+     * Default: 'https://app.trustsource.io'
      */
-    @Parameter(property = "licenseScan.baseUrl", defaultValue = "https://ecs-app.eacg.de")
+    @Parameter(property = "licenseScan.baseUrl", defaultValue = "https://app.trustsource.io")
     private String baseUrl;
 
     /**
