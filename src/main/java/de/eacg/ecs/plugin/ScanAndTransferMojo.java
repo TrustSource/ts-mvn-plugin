@@ -94,6 +94,38 @@ public class ScanAndTransferMojo extends AbstractMojo {
     private String baseUrl;
 
     /**
+     * The proxy server url.<br/>
+     * <p/>
+     * Default: ''
+     */
+    @Parameter(property = "licenseScan.proxyUrl", defaultValue = "")
+    private String proxyUrl;
+
+    /**
+     * The proxy server port.<br/>
+     * <p/>
+     * Default: '8080'
+     */
+    @Parameter(property = "licenseScan.proxyPort", defaultValue = "8080")
+    private String proxyPort;
+
+    /**
+     * The proxy server username.<br/>
+     * <p/>
+     * Default: ''
+     */
+    @Parameter(property = "licenseScan.proxyUser", defaultValue = "")
+    private String proxyUser;
+
+    /**
+     * The proxy server password.<br/>
+     * <p/>
+     * Default: ''
+     */
+    @Parameter(property = "licenseScan.proxyPass", defaultValue = "")
+    private String proxyPass;
+
+    /**
      * The API Path to access central evaluation server.<br/>
      * <p/>
      * Default: '/api/v1'
@@ -307,10 +339,15 @@ public class ScanAndTransferMojo extends AbstractMojo {
         credentials.setBaseUrl(this.baseUrl);
         credentials.setApiPath(this.apiPath);
 
-        List<String> misssingKeys = credentials.validate();
-        if(misssingKeys.isEmpty() == false) {
+        credentials.setProxyUrl(this.proxyUrl);
+        credentials.setProxyPort(this.proxyPort);
+        credentials.setProxyUser(this.proxyUser);
+        credentials.setProxyPass(this.proxyPass);
+
+        List<String> missingKeys = credentials.validate();
+        if(!missingKeys.isEmpty()) {
             String err = String.format("The mandatory parameter(s) '%s' for plugin %s is missing or invalid",
-                    misssingKeys.toString(), ComponentId.create(mavenProject));
+                    missingKeys.toString(), ComponentId.create(mavenProject));
             getLog().error(err);
             throw new MojoExecutionException("Exception: " + err);
         }

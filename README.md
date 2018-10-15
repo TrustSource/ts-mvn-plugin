@@ -137,6 +137,16 @@ Disable the maven deployment plugin:
 </plugin>                
 ```
 
+#### Proxy settings
+
+- *proxyUrl* (Optional): Url of the proxy server
+
+- *proxyPort* (Optional, Default: 8080): Port of the proxy server
+
+- *proxyUser* (Optional): Username if proxy server requires authentication
+
+- *proxyPass* (Optional): Password if proxy server requires authentication
+
 #### Configuration parameters
 
 - *credentials* (Optional): Path to a json file, which holds ‘userName’ and ‘apiKey’ credentials. Use ‘~’ as shortcut to your home directory, and ‘.’ for the current working directory. A forward slash ‘/’ separates directories. *Default*: apiKey and userName are expected to be set in the plugin configuration
