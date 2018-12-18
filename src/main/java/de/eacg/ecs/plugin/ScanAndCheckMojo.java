@@ -79,25 +79,26 @@ public class ScanAndCheckMojo extends ScanAndTransferMojo {
         Dependency dependency = createDependency();
         CheckResults results = null;
 
+
+        Scan scan = createScan(dependency);
+        RestClient restClient = createRestClient();
+
         try {
-            Scan scan = createScan(dependency);
-            RestClient restClient = createRestClient();
-
             results = restClient.checkScan(scan);
-            if (restClient.getResponseStatus() != 200) {
-                throw new MojoExecutionException("Failed : HTTP error code : " + restClient.getResponseStatus());
-            }
-
-            if(results == null) {
-                throw new MojoExecutionException("Failed : cannot parse server response");
-            }
-
-        } catch (Exception e) {
-            getLog().error("Calling Rest API failed", e);
-            throw new MojoExecutionException("Exception while calling Rest API", e);
+        } catch(Exception e) {
+            throw new MojoExecutionException("Failed to call rest client", e);
         }
 
-        evaluateResults(results);
+
+        if (restClient.getResponseStatus() != 200) {
+            getLog().warn("Calling Rest API failed with error code " + restClient.getResponseStatus());
+        } else if (results == null) {
+            getLog().warn("Cannot parse server response");
+        } else {
+            evaluateResults(results);
+
+        }
+
     }
 
 
