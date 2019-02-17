@@ -85,20 +85,13 @@ public class ScanAndCheckMojo extends ScanAndTransferMojo {
 
         try {
             results = restClient.checkScan(scan);
-        } catch(Exception e) {
-            throw new MojoExecutionException("Failed to call rest client", e);
+        } catch (RestClient.RestClientException e) {
+            getLog().warn(e.getMessage());
         }
 
-
-        if (restClient.getResponseStatus() != 200) {
-            getLog().warn("Calling Rest API failed with error code " + restClient.getResponseStatus());
-        } else if (results == null) {
-            getLog().warn("Cannot parse server response");
-        } else {
+        if (restClient.getResponseStatus() == 200) {
             evaluateResults(results);
-
         }
-
     }
 
 
