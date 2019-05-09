@@ -155,9 +155,13 @@ Disable the maven deployment plugin:
         
 - *userName* (Required, if not specified in credentials file.): Identifies the initiator of the data transfer.
     
-- *baseUrl* (optional): default is set to app.trustource.io, please change incase you have a different target.
+- *baseUrl* (optional): default is set to app.trustource.io, please change in case you have a different target.
 
 - *projectName* (Required): For which project is the dependency information transferred.
+
+- *branch* (Optional): Project's branch in the VCS.
+
+- *tag* (Optional): Project's tag in the VCS.
     
 - *skip* (Optional): Set to true do disable the ecs-mvn-plugin. *Default: false*
     

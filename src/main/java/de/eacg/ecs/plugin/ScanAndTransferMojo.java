@@ -86,7 +86,23 @@ public class ScanAndTransferMojo extends AbstractMojo {
     private String moduleId;
 
     /**
-     * The Baseurl to access central evaluation server.<br/>
+     * The VCS branch of the module as reported to central evaluation server.<br/>
+     * <p/>
+     * Default: ''
+     */
+    @Parameter(property = "licenseScan.branch")
+    private String branch;
+
+    /**
+     * The VCS tag of the module as reported to central evaluation server.<br/>
+     * <p/>
+     * Default: ''
+     */
+    @Parameter(property = "licenseScan.tag")
+    private String tag;
+
+    /**
+     * The base url to access central evaluation server.<br/>
      * <p/>
      * Default: 'https://app.trustsource.io'
      */
@@ -98,7 +114,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
      * <p/>
      * Default: ''
      */
-    @Parameter(property = "licenseScan.proxyUrl", defaultValue = "")
+    @Parameter(property = "licenseScan.proxyUrl")
     private String proxyUrl;
 
     /**
@@ -114,7 +130,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
      * <p/>
      * Default: ''
      */
-    @Parameter(property = "licenseScan.proxyUser", defaultValue = "")
+    @Parameter(property = "licenseScan.proxyUser")
     private String proxyUser;
 
     /**
@@ -122,7 +138,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
      * <p/>
      * Default: ''
      */
-    @Parameter(property = "licenseScan.proxyPass", defaultValue = "")
+    @Parameter(property = "licenseScan.proxyPass")
     private String proxyPass;
 
     /**
@@ -287,7 +303,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
     }
 
     protected Scan createScan(Dependency dependency) {
-        return new Scan(projectName, moduleName, moduleId, dependency);
+        return new Scan(projectName, moduleName, moduleId, branch, tag, dependency);
     }
 
     protected RestClient createRestClient() throws MojoExecutionException {
