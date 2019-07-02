@@ -11,6 +11,8 @@ TrustSource (https://www.trustsource.io) Code Scan maven plugin. A plugin for ma
     - 1.7 or later
 - Maven
     - 3.0 or later
+
+PLEASE NOTE: To operate on Java 11 or 12, please use Plugin version 0.2.0 or higher. Versions 0.1.x have been designed for Java 1.8. They also might be used for Java 10 and 11, but we did not yet officially test it.
     
 ## Quick installation
 
@@ -26,7 +28,7 @@ Simple example pom.xml:
     <plugin>
       <groupId>de.eacg</groupId>
       <artifactId>ecs-mvn-plugin</artifactId>
-      <version>0.1.9</version>
+      <version>0.2.0</version>
       <configuration>
         <apiKey>YOUR API KEY GOES HERE</apiKey>
         <userName>LOGINNAME(e-mail) GOES HERE</userName>
@@ -105,7 +107,7 @@ configuration of the ecs-mvn-plugin:
 <plugin>
     <groupId>de.eacg</groupId>
     <artifactId>ecs-mvn-plugin</artifactId>
-    <version>0.1.9</version>
+    <version>0.2.0</version>
     <configuration>
         <credentials>~/ecs-settings.json</credentials>
         <projectName>THE NAME OF YOUR PROJECT</projectName>
@@ -130,7 +132,7 @@ Disable the maven deployment plugin:
 <plugin>
   <groupId>org.apache.maven.plugins</groupId>
   <artifactId>maven-deploy-plugin</artifactId>
-  <version>2.8.2</version>
+  <version>3.1.1</version>
   <configuration>
     <skip>true</skip>
   </configuration>
