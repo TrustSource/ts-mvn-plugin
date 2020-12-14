@@ -1,4 +1,4 @@
-# ecs-mvn-plugin
+# TrustSource Maven Plugin
 TrustSource (https://www.trustsource.io) Code Scan maven plugin. A plugin for maven to transfer dependency information to TrustSource service to allow dependency checking, vulnerability and license analysis. 
 
 [![Build Status](https://travis-ci.org/eacg-gmbh/ecs-mvn-plugin.svg?branch=master)](https://travis-ci.org/eacg-gmbh/ecs-mvn-plugin)
