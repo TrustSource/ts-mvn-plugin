@@ -5,7 +5,7 @@
 
     <groupId>de.eacg</groupId>
     <artifactId>ecs-mvn-plugin</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
     <packaging>maven-plugin</packaging>
 
     <name>ecs-mvn-plugin</name>
@@ -127,7 +127,7 @@
         <dependency>
             <groupId>de.eacg</groupId>
             <artifactId>ecs-java-client</artifactId>
-            <version>0.3.0</version>
+            <version>0.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
@@ -199,7 +199,7 @@
             <plugin>
                 <groupId>de.eacg</groupId>
                 <artifactId>ecs-mvn-plugin</artifactId>
-                <version>0.2.0</version>
+                <version>0.2.1</version>
                 <configuration>
                     <skip>true</skip>
                     <credentials>~/.ecsrc.json</credentials>                    
