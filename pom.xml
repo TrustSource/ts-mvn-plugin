@@ -5,7 +5,7 @@
 
     <groupId>de.eacg</groupId>
     <artifactId>ecs-mvn-plugin</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
     <packaging>maven-plugin</packaging>
 
     <name>ecs-mvn-plugin</name>
@@ -127,7 +127,7 @@
         <dependency>
             <groupId>de.eacg</groupId>
             <artifactId>ecs-java-client</artifactId>
-            <version>0.3.1</version>
+            <version>0.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
@@ -199,9 +199,9 @@
             <plugin>
                 <groupId>de.eacg</groupId>
                 <artifactId>ecs-mvn-plugin</artifactId>
-                <version>0.2.1</version>
+                <version>0.2.2</version>
                 <configuration>
-                    <skip>true</skip>
+                    <skip>false</skip>
                     <credentials>~/.ecsrc.json</credentials>                    
                     <projectName>ecs-mvn-plugin</projectName>
                     <skipTransfer>false</skipTransfer>
@@ -212,6 +212,14 @@
                         <phase>deploy</phase>
                         <goals>
                             <goal>dependency-scan</goal>
+                        </goals>
+                    </execution>
+                    <!-- Check dependencies for legal issues and vulnerabilities during the build -->
+                    <execution>
+                        <id>dependency-check</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>dependency-check</goal>
                         </goals>
                     </execution>
                 </executions>
