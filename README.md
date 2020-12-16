@@ -96,7 +96,6 @@ If you do not want to include your sensitive credentials in the pom, which may b
 properties file ‘ecs-settings.json’ in your home directory:
 ```json
 {
-    "userName": "email@yourdomain.com",
     "apiKey": "234434-fb9b-46f2-db84-ec3f57a46f2"
 }
 ```
