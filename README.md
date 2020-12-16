@@ -19,7 +19,7 @@ PLEASE NOTE: To operate on Java 11 or 12, please use Plugin version 0.2.0 or hig
 It is pretty simple to include the TrustSource scan into your existing Maven projects. Mayke use of the ecs-mvn-plugin by declaring it in your pom and using the given example as template.
 Then configure the plugin with your security credentials and bind it to the maven install lifecycle.
 
-To retrieve a TrustSource ApiKey, login to the TrustSource web application at https://app.trustsource.io. Accounts can be obtain upon subscription. A free version is available. After registration go to profile settings by clicking the gear-icon in the navigation bar and copy one of your company’s ApiKeys to your clipboard. Paste this value between the `<apiKey>...</apiKey>` tags of your project’s pom.xml file. Enter your TrustSource username, probably your e-mail address, between the `<userName>...</userName>` tags and find a reasonable project name to enter it between the `<projectName>...</projectName>` tags.
+To retrieve a TrustSource ApiKey, login to the TrustSource web application at https://app.trustsource.io. Accounts can be obtain upon subscription. A free version is available. After registration go to profile settings by clicking the gear-icon in the navigation bar and copy one of your company’s ApiKeys to your clipboard. Paste this value between the `<apiKey>...</apiKey>` tags of your project’s pom.xml file. Find a reasonable project name to enter it between the `<projectName>...</projectName>` tags.
 
 Simple example pom.xml:
 ```xml
@@ -31,7 +31,6 @@ Simple example pom.xml:
       <version>0.2.0</version>
       <configuration>
         <apiKey>YOUR API KEY GOES HERE</apiKey>
-        <userName>LOGINNAME(e-mail) GOES HERE</userName>
         <projectName>THE NAME OF YOUR PROJECT</projectName>
       </configuration>
       <executions>
