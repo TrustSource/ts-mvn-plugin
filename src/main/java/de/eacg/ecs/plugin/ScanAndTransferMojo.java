@@ -188,14 +188,6 @@ public class ScanAndTransferMojo extends AbstractMojo {
     @Parameter( property = "licenseScan.credentials")
     private String credentials;
     /**
-     * The username used to authorize the transfer of dependency information to central server.
-     * <p/>
-     * Required, if not specified in credentials file
-     */
-    @Parameter(property = "licenseScan.userName")
-    private String userName;
-
-    /**
      * The API key to used to authorize the transfer of dependency information to central server.
      * <p/>
      * Required, if not specified in credentials file
@@ -350,7 +342,6 @@ public class ScanAndTransferMojo extends AbstractMojo {
             getLog().error("Evaluation of user credentials failed", e);
             throw new MojoExecutionException("Exception while evaluating user credentials", e);
         }
-        credentials.setUserName(this.userName);
         credentials.setApiKey(this.apiKey);
         credentials.setBaseUrl(this.baseUrl);
         credentials.setApiPath(this.apiPath);
