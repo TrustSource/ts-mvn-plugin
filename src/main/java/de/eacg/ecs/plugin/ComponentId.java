@@ -24,7 +24,7 @@ public abstract class ComponentId {
         if (this == o) {
             return true;
         }
-        if ((o instanceof ComponentId) == false) {
+        if (!(o instanceof ComponentId)) {
             return false;
         }
         return toString().equals(o.toString());
@@ -38,14 +38,11 @@ public abstract class ComponentId {
     @Override
     public String toString() {
         if(this.id == null) {
-            StringBuilder sb = new StringBuilder(64);
-
-            sb.append((this.getGroupId() == null) ? "[inherited]" : this.getGroupId());
-            sb.append(":");
-            sb.append(this.getArtifactId());
-            sb.append(":");
-            sb.append((this.getVersion() == null) ? "[inherited]" : this.getVersion());
-            this.id = sb.toString();
+            this.id = ((this.getGroupId() == null) ? "[inherited]" : this.getGroupId()) +
+                    ":" +
+                    this.getArtifactId() +
+                    ":" +
+                    ((this.getVersion() == null) ? "[inherited]" : this.getVersion());
         }
         return this.id;
     }

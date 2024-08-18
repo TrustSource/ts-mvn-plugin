@@ -7,10 +7,9 @@
 
 package de.eacg.ecs.plugin;
 
+import org.codehaus.mojo.license.api.ArtifactFilters;
 import org.codehaus.mojo.license.api.MavenProjectDependenciesConfigurator;
 
-import java.util.Collections;
-import java.util.List;
 
 public class MavenProjectDependenciesConfiguratorImpl implements MavenProjectDependenciesConfigurator{
 
@@ -31,33 +30,13 @@ public class MavenProjectDependenciesConfiguratorImpl implements MavenProjectDep
     }
 
     @Override
-    public List<String> getIncludedScopes() {
-        return Collections.emptyList();
+    public boolean isExcludeTransitiveDependencies() {
+        return false;
     }
 
     @Override
-    public List<String> getExcludedScopes() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public String getIncludedArtifacts() {
-        return "";
-    }
-
-    @Override
-    public String getExcludedArtifacts() {
-        return "";
-    }
-
-    @Override
-    public String getIncludedGroups() {
-        return "";
-    }
-
-    @Override
-    public String getExcludedGroups() {
-        return "";
+    public ArtifactFilters getArtifactFilters() {
+        return null;
     }
 
     @Override

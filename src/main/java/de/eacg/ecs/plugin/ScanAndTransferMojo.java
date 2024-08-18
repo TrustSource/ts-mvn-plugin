@@ -28,32 +28,19 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.dependency.graph.DependencyGraphBuilder;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
-import org.codehaus.mojo.license.api.DefaultThirdPartyHelper;
-import org.codehaus.mojo.license.api.DependenciesTool;
-import org.codehaus.mojo.license.api.ThirdPartyHelper;
-import org.codehaus.mojo.license.api.ThirdPartyTool;
+import org.codehaus.mojo.license.api.*;
 import org.codehaus.mojo.license.model.LicenseMap;
+import org.eclipse.aether.repository.RemoteRepository;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 
 @Mojo(name = "dependency-scan", defaultPhase = LifecyclePhase.DEPLOY,
         requiresDependencyResolution = ResolutionScope.TEST)
 public class ScanAndTransferMojo extends AbstractMojo {
-
-    /** ----------------------------------------------------------------------
-     * Mojo Parameters
-     *
-     * ----------------------------------------------------------------------*/
 
     /**
      * Activate verbose mode. If you use start mvn with -X, verbose is also on
@@ -104,7 +91,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
     /**
      * The base url to access central evaluation server.<br/>
      * <p/>
-     * Default: 'https://app.trustsource.io'
+     * Default: '<a href="https://app.trustsource.io">...</a>'
      */
     @Parameter(property = "licenseScan.baseUrl", defaultValue = "https://app.trustsource.io")
     private String baseUrl;
@@ -222,7 +209,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
     private ArtifactRepository localRepository;
 
     @Parameter(defaultValue = "${project.remoteArtifactRepositories}",required = true, readonly = true )
-    private List<ArtifactRepository> remoteRepositories;
+    private List<RemoteRepository> remoteRepositories;
 
     @Parameter(defaultValue = "${project.build.sourceEncoding}", readonly = true)
     private String encoding;
@@ -318,7 +305,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
             for(License lic : mavenProject.getModel().getLicenses()) {
                 ownLicenses.add(lic.getName());
             }
-            String[] ownLicensesArr = ownLicenses.toArray(new String[ownLicenses.size()]);
+            String[] ownLicensesArr = ownLicenses.toArray(new String[0]);
 
             Map<MavenProject, String[]> myOwnMap = new HashMap<>();
             myOwnMap.put(mavenProject, ownLicensesArr);
@@ -364,9 +351,14 @@ public class ScanAndTransferMojo extends AbstractMojo {
 
     private LicenseMap createLicenseMap() {
         ThirdPartyHelper tpHelper = new DefaultThirdPartyHelper( this.mavenProject, this.encoding, this.verbose,
-                this.dependenciesTool, this.thirdPartyTool, this.localRepository, this.remoteRepositories, getLog() );
+                this.dependenciesTool, this.thirdPartyTool,
+                Collections.singletonList(this.localRepository), this.remoteRepositories);
 
-        return tpHelper.createLicenseMap(tpHelper.loadDependencies(new MavenProjectDependenciesConfiguratorImpl()));
+        return tpHelper.createLicenseMap(tpHelper.loadDependencies(
+                new MavenProjectDependenciesConfiguratorImpl(),
+                new ResolvedProjectDependencies(
+                        mavenProject.getArtifacts(),
+                        mavenProject.getDependencyArtifacts())));
     }
 
     private String[] getPrivateComponents() {
@@ -452,27 +444,21 @@ public class ScanAndTransferMojo extends AbstractMojo {
     }
 
     private Artifact findProjectArtifact(Artifact other) {
-        for(Object obj : mavenProject.getArtifacts()) {
-            // unfortunately we can't use DefaultArtifact.equals(), because the classifier of both may differ (null vs "") even
-            // if the Objects represent the same physical artifact.
+        for(Artifact obj : mavenProject.getArtifacts()) {
             if ( obj == other ) {
-                return (Artifact)obj;
+                return obj;
             }
 
-            if ( obj instanceof Artifact ) {
-                Artifact self = (Artifact) obj;
+            if (obj.getGroupId().equals(other.getGroupId())
+                        && obj.getArtifactId().equals(other.getArtifactId())
+                        && obj.getVersion().equals(other.getVersion())
+                        && obj.getType().equals(other.getType())) {
 
-                if (self.getGroupId().equals(other.getGroupId())
-                        && self.getArtifactId().equals(other.getArtifactId())
-                        && self.getVersion().equals(other.getVersion())
-                        && self.getType().equals(other.getType())) {
+                String myClassifier = obj.getClassifier() == null ? "" : obj.getClassifier();
+                String otherClassifier = other.getClassifier() == null ? "" : other.getClassifier();
 
-                    String myClassifier = self.getClassifier() == null ? "" : self.getClassifier();
-                    String otherClassifier = other.getClassifier() == null ? "" : other.getClassifier();
-
-                    if (myClassifier.equals(otherClassifier)) {
-                        return self;
-                    }
+                if (myClassifier.equals(otherClassifier)) {
+                    return obj;
                 }
             }
         }
@@ -534,8 +520,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
         if ( scope != null ) {
             getLog().info(String.format("The selected scope is '%s'", scope));
             return  new ScopeArtifactFilter( scope );
-        } else
-
+        }
         return null;
     }
 
@@ -544,8 +529,8 @@ public class ScanAndTransferMojo extends AbstractMojo {
         try {
             ProjectProperties properties = new ProjectProperties();
             userAgent = properties.getProperty("artifactId") + "/" + properties.getProperty("version");
-        }catch(IOException e) {
-        }
+        } catch(IOException ignored) { }
+
         return userAgent;
     }
 }

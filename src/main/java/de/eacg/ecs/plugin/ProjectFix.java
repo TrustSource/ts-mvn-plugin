@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class ProjectFix {
 
-    private static Map<String, String> lookup = new HashMap<>();
+    private static final Map<String, String> lookup = new HashMap<>();
 
     static {
         // groupId:artifactId:classifier:version

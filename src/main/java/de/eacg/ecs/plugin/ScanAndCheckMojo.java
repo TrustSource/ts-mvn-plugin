@@ -18,11 +18,6 @@ import java.util.List;
         requiresDependencyResolution = ResolutionScope.TEST)
 public class ScanAndCheckMojo extends ScanAndTransferMojo {
 
-    /** ----------------------------------------------------------------------
-     * Mojo Parameters
-     *
-     * ----------------------------------------------------------------------*/
-
     /**
      * Allow to break a build<br/>
      * <p/>
@@ -90,6 +85,7 @@ public class ScanAndCheckMojo extends ScanAndTransferMojo {
         }
 
         if (restClient.getResponseStatus() == 200) {
+            assert results != null;
             evaluateResults(results);
         }
     }
