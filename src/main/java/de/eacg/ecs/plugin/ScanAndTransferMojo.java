@@ -131,9 +131,9 @@ public class ScanAndTransferMojo extends AbstractMojo {
     /**
      * The API Path to access central evaluation server.<br/>
      * <p/>
-     * Default: '/api/v1'
+     * Default: '/api/v2'
      */
-    @Parameter(property = "licenseScan.apiPath", defaultValue = "/api/v1")
+    @Parameter(property = "licenseScan.apiPath", defaultValue = "/api/v2")
     private String apiPath;
 
     /**
@@ -196,7 +196,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
 
     /** ----------------------------------------------------------------------
      * Mojo injected components
-     *
+     * <p>
      * ----------------------------------------------------------------------*/
 
     @Component( hint = "default" )
@@ -222,14 +222,14 @@ public class ScanAndTransferMojo extends AbstractMojo {
 
     /** ----------------------------------------------------------------------
      * Mojo private properties
-     *
+     * <p>
      * ----------------------------------------------------------------------*/
     private String[] privateComponentArr = null;
 
 
     /** ----------------------------------------------------------------------
      * Mojo properties accessors
-     *
+     * <p>
      * ----------------------------------------------------------------------*/
 
     public String getProjectName() {
@@ -243,7 +243,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
 
     /** ----------------------------------------------------------------------
      * Mojo implementation
-     *
+     * <p>
      * ----------------------------------------------------------------------*/
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
