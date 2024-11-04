@@ -91,9 +91,9 @@ public class ScanAndTransferMojo extends AbstractMojo {
     /**
      * The base url to access central evaluation server.<br/>
      * <p/>
-     * Default: '<a href="https://app.trustsource.io">...</a>'
+     * Default: '<a href="https://api.trustsource.io">...</a>'
      */
-    @Parameter(property = "licenseScan.baseUrl", defaultValue = "https://app.trustsource.io")
+    @Parameter(property = "licenseScan.baseUrl", defaultValue = "https://api.trustsource.io")
     private String baseUrl;
 
     /**
@@ -133,7 +133,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
      * <p/>
      * Default: '/api/v2'
      */
-    @Parameter(property = "licenseScan.apiPath", defaultValue = "/api/v2")
+    @Parameter(property = "licenseScan.apiPath", defaultValue = "/v2")
     private String apiPath;
 
     /**
@@ -193,6 +193,13 @@ public class ScanAndTransferMojo extends AbstractMojo {
     @Parameter(property = "licenseScan.privateComponents", defaultValue = "${project.groupId}")
     private String privateComponents;
 
+    /**
+     * Output file path for the server response
+     * <p/>
+     * Default: '${project.groupId}' groupId of the current project
+     */
+    @Parameter(property = "licenseScan.privateComponents", defaultValue = "${project.groupId}")
+    private String output;
 
     /** ----------------------------------------------------------------------
      * Mojo injected components

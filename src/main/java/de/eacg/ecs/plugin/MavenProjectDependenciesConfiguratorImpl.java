@@ -36,7 +36,7 @@ public class MavenProjectDependenciesConfiguratorImpl implements MavenProjectDep
 
     @Override
     public ArtifactFilters getArtifactFilters() {
-        return null;
+        return ArtifactFilters.buidler().build();
     }
 
     @Override
