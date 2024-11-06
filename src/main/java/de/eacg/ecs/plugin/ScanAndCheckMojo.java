@@ -81,7 +81,7 @@ public class ScanAndCheckMojo extends ScanAndTransferMojo {
         try {
             results = restClient.checkScan(scan);
         } catch (RestClient.RestClientException e) {
-            getLog().warn(e.getMessage());
+            getLog().error(e.getMessage());
         }
 
         if (restClient.getResponseStatus() == 200) {
