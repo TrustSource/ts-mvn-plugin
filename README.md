@@ -28,7 +28,7 @@ Simple example pom.xml:
     <plugin>
       <groupId>de.eacg</groupId>
       <artifactId>ecs-mvn-plugin</artifactId>
-      <version>0.2.2</version>
+      <version>0.2.7</version>
       <configuration>
         <apiKey>YOUR API KEY GOES HERE</apiKey>
         <projectName>THE NAME OF YOUR PROJECT</projectName>
@@ -105,7 +105,7 @@ configuration of the ecs-mvn-plugin:
 <plugin>
     <groupId>de.eacg</groupId>
     <artifactId>ecs-mvn-plugin</artifactId>
-    <version>0.2.2</version>
+    <version>0.2.7</version>
     <configuration>
         <credentials>~/ecs-settings.json</credentials>
         <projectName>THE NAME OF YOUR PROJECT</projectName>

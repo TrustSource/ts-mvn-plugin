@@ -411,7 +411,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
 
         builder.setName(project.getName())
                 .setDescription(project.getDescription())
-                .setKey("mvn:" + project.getGroupId() + ':' + project.getArtifactId())
+                .setKey("maven:" + project.getGroupId() + ':' + project.getArtifactId())
                 .addVersion(project.getVersion())
                 .setHomepageUrl(project.getUrl());
         if(isPrivateComponent(project)) {
@@ -534,7 +534,7 @@ public class ScanAndTransferMojo extends AbstractMojo {
     private String getUserAgent() {
         String userAgent = "ecs-mvn-plugin/0.0";
         try {
-            ProjectProperties properties = new ProjectProperties();
+            var properties = new ProjectProperties();
             userAgent = properties.getProperty("artifactId") + "/" + properties.getProperty("version");
         } catch(IOException ignored) { }
 
