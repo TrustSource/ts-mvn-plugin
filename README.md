@@ -6,7 +6,7 @@ TrustSource (https://www.trustsource.io) Code Scan maven plugin. A plugin for ma
 [![MIT License](https://img.shields.io/npm/l/check-dependencies.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 
 > [!WARNING]
-> **PLEASE NOTE:** We stopped further development on this client. You may still use it, but it will only receive bug fixes. Starting Q4/2024 we decided to focus all efforts on developing [th-scan](https://github.com/trustsource/ts-scan), which also covers all capabilities of this solution. 
+> **PLEASE NOTE:** We stopped further development on this client. You may still use it, but it will only receive bug fixes. Starting Q4/2024 we decided to focus all efforts on developing [ts-scan](https://github.com/trustsource/ts-scan), which also covers all capabilities of this solution. 
 
 ## System requirements
 
